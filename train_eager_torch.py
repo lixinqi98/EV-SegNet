@@ -6,7 +6,7 @@ import torch.nn as nn
 import os
 import nets.Network as Segception
 import utils.Loader as Loader
-from utils.utils import get_params, preprocess, lr_decay, convert_to_tensors, restore_state, init_model, get_metrics
+from utils.utils import preprocess, lr_decay, convert_to_tensors, get_metrics
 import argparse
 
 # enable eager mode
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Init models (optional, just for get_params function)
-    init_model(model, input_shape=(batch_size, width, height, channels))
+    # init_model(model, input_shape=(batch_size, width, height, channels)) DEPRECATED
 
     variables_to_restore = model.variables #[x for x in model.variables if 'block1_conv1' not in x.name]
     variables_to_save = model.variables
@@ -130,8 +130,8 @@ if __name__ == "__main__":
     restore_model = torch.save(model.state_dict(), PATH)
 
     # restore if model saved and show number of params
-    restore_state(restore_model, name_best_model)
-    get_params(model)
+    # restore_state(restore_model, name_best_model) DEPRECATED
+    # get_params(model)  DEPRECATED
 
     train(loader=loader, model=model, epochs=epochs, batch_size=batch_size, augmenter='segmentation', lr=learning_rate,
           init_lr=lr, saver=saver_model, variables_to_optimize=variables_to_optimize, name_best_model=name_best_model,
