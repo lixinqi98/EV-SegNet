@@ -1,9 +1,11 @@
 import numpy as np
 # import tensorflow as tf
 # import tensorflow.contrib.eager as tfe
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
+from keras.applications.resnet50 import preprocess_input
 import math
 import os
 import cv2
@@ -13,7 +15,7 @@ import cv2
 def preprocess(x, mode='imagenet'):
     if mode:
         if 'imagenet' in mode:
-            return tf.keras.applications.xception.preprocess_input(x)
+            return preprocess_input(x)
         elif 'normalize' in mode:
             return  x.astype(np.float32) / 127.5 - 1
     else:
@@ -27,7 +29,7 @@ def lr_decay(lr, init_learning_rate, end_learning_rate, epoch, total_epochs, pow
 # converts a list of arrays into a list of tensors
 def convert_to_tensors(list_to_convert):
     if list_to_convert != []:
-        return [tf.convert_to_tensor(list_to_convert[0])] + convert_to_tensors(list_to_convert[1:])
+        return [torch.tensor(list_to_convert[0])] + convert_to_tensors(list_to_convert[1:])
     else:
         return []
 
