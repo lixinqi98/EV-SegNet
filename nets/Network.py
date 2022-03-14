@@ -10,7 +10,7 @@ class Segception_small(nn.Model):
     def __init__(self, num_classes, input_shape=(None, None, 3), in_channels=3, weights='imagenet', **kwargs):
         super(Segception_small, self).__init__(**kwargs)
         # load pretrained Xception
-        base_model = pretrainedmodels.__dict__['xception'](num_classes=1000, pretrained='imagenet')
+        # base_model = pretrainedmodels.__dict__['xception'](num_classes=1000, pretrained='imagenet')
         base_model = resnet50(pretrained=True)
         
         # TODO get the each layer output here
