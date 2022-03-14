@@ -1,6 +1,4 @@
 import numpy as np
-import tensorflow as tf
-import tensorflow.contrib.eager as tfe
 import torch
 import torch.nn as nn
 import os
