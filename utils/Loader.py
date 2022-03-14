@@ -1,11 +1,10 @@
 from __future__ import print_function
 import os
 import numpy as np
-import tensorflow as tf
 # from tensorflow.keras.utils import to_categorical
 import glob
 import cv2
-from augmenters import get_augmenter
+from .augmenters import get_augmenter
 from PIL import Image
 
 np.random.seed(7)

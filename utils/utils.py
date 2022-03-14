@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
-from keras.applications.resnet50 import preprocess_input
 import math
 import os
 import cv2
@@ -23,8 +22,9 @@ def preprocess(x, mode='imagenet'):
 
 # applies to a lerarning rate tensor (lr) a decay schedule, the polynomial decay
 def lr_decay(lr, init_learning_rate, end_learning_rate, epoch, total_epochs, power=0.9):
-    lr.assign(
-        (init_learning_rate - end_learning_rate) * math.pow(1 - epoch / 1. / total_epochs, power) + end_learning_rate)
+    # lr.assign(
+    #     (init_learning_rate - end_learning_rate) * math.pow(1 - epoch / 1. / total_epochs, power) + end_learning_rate)
+    pass
 
 # converts a list of arrays into a list of tensors
 def convert_to_tensors(list_to_convert):

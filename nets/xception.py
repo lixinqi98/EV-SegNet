@@ -206,5 +206,5 @@ def xception(pretrained=False,**kwargs):
 
     model = Xception(**kwargs)
     if pretrained:
-        model.load_state_dict(torch.load('./xception-c0a72b38.pth.tar'))
+        model.load_state_dict(model_zoo.load_url('http://data.lip6.fr/cadene/pretrainedmodels/xception-43020ad28.pth'))
     return model

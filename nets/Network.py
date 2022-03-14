@@ -13,13 +13,8 @@ class Segception_small(nn.Module):
 
         self.base_output = {}
 
-        base_model = xception(num_classes=1000, pretrained='imagenet')
-        base_model.block2.rep[2].register_forward_hook(get_features(self.base_output, 'block2_sepconv2_bn'))
-        base_model.block3.rep[2].register_forward_hook(get_features(self.base_output,'block3_sepconv2_bn'))
-        base_model.block4.rep[2].register_forward_hook(get_features(self.base_output,'block4_sepconv2_bn'))
-        base_model.block11.rep[2].register_forward_hook(get_features(self.base_output,'block11_sepconv2_bn'))
-        base_model.block12.rep[2].register_forward_hook(get_features(self.base_output,'block12_sepconv2_bn'))
-        
+        self.base_model = xception(num_classes=1000, pretrained='imagenet')
+
         # TODO get the each layer output here
 
         # Decoder
@@ -37,9 +32,15 @@ class Segception_small(nn.Module):
 
         self.conv_logits = conv(in_channels=in_channels, out_channels=num_classes, kernel_size=1, strides=1, use_bias=True)
 
-    def call(self, inputs, training=None, mask=None, aux_loss=False):
+    def forward(self, inputs, training=None, mask=None, aux_loss=False):
 
         # outputs = self.model_output(inputs, training=training)
+        self.base_model.block2.rep[2].register_forward_hook(get_features(self.base_output, 'block2_sepconv2_bn'))
+        self.base_model.block3.rep[2].register_forward_hook(get_features(self.base_output,'block3_sepconv2_bn'))
+        self.base_model.block4.rep[2].register_forward_hook(get_features(self.base_output,'block4_sepconv2_bn'))
+        self.base_model.block11.rep[2].register_forward_hook(get_features(self.base_output,'block11_sepconv2_bn'))
+        self.base_model.block12.rep[2].register_forward_hook(get_features(self.base_output,'block12_sepconv2_bn'))
+        
         outputs = list(self.base_output.values())
         # add activations to the ourputs of the model
         for i in range(len(outputs)):
