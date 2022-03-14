@@ -22,6 +22,7 @@ import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from torch.nn import init
 import torch
+import pdb
 
 __all__ = ['xception']
 
@@ -164,7 +165,7 @@ class Xception(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        
+        pdb.set_trace()
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu(x)
@@ -205,5 +206,5 @@ def xception(pretrained=False,**kwargs):
 
     model = Xception(**kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['xception']))
+        model.load_state_dict(torch.load('./xception-c0a72b38.pth.tar'))
     return model
