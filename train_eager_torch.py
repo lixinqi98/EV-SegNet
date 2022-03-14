@@ -10,26 +10,29 @@ import argparse
 # enable eager mode
 # tf.enable_eager_execution()
 torch.manual_seed(7)
-np.random_seed(7)
+# TODO: figure out why random_seed
+# np.random_seed(7)
 
 
 # Trains the model for certains epochs on a dataset
 def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None, lr=None, init_lr=2e-4,
-          saver=None, variables_to_optimize=None, evaluation=True, name_best_model = 'weights/best', preprocess_mode=None):
+          saver=None, variables_to_optimize=None, evaluation=True, name_best_model = 'weights/best', preprocess_mode=None,
+          optimizer=None, scheduler=None):
     training_samples = len(loader.image_train_list)
-    steps_per_epoch = (training_samples / batch_size) + 1
+    steps_per_epoch = int(training_samples / batch_size) + 1
     best_miou = 0
 
     for epoch in range(epochs):  # for each epoch
-        lr_decay(lr, init_lr, 1e-9, epoch, epochs - 1)  # compute the new lr
-        print('epoch: ' + str(epoch) + '. Learning rate: ' + str(lr.numpy()))
+        # lr_decay(lr, init_lr, 1e-9, epoch, epochs - 1)  # compute the new lr
+        scheduler.step()
+        print('epoch: ' + str(epoch) + '. Learning rate: ' + str(lr))
         for step in range(steps_per_epoch):  # for every batch
             # get batch
             x, y, mask = loader.get_batch(size=batch_size, train=True, augmenter=augmenter)
             x = preprocess(x, mode=preprocess_mode)
             [x, y, mask] = convert_to_tensors([x, y, mask])
 
-            y_, aux_y_ = model(x, training=True, aux_loss=True)  # get output of the model
+            y_, aux_y_ = model(x)  # get output of the model
 
             # loss = tf.losses.softmax_cross_entropy(y, y_, weights=mask)  # compute loss
             # loss_aux = tf.losses.softmax_cross_entropy(y, aux_y_, weights=mask)  # compute loss
@@ -71,11 +74,11 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", help="Dataset path", default='dataset_our_codification')
+    parser.add_argument("--dataset", help="Dataset path", default='test_data')
     parser.add_argument("--model_path", help="Model path", default='weights/model')
     parser.add_argument("--n_classes", help="number of classes to classify", default=6)
-    parser.add_argument("--batch_size", help="batch size", default=8)
-    parser.add_argument("--epochs", help="number of epochs to train", default=500)
+    parser.add_argument("--batch_size", help="batch size", default=2)
+    parser.add_argument("--epochs", help="number of epochs to train", default=1)
     parser.add_argument("--width", help="number of epochs to train", default=352)
     parser.add_argument("--height", help="number of epochs to train", default=224)
     parser.add_argument("--lr", help="init learning rate", default=1e-3)
@@ -112,18 +115,23 @@ if __name__ == "__main__":
     # learning_rate = tfe.Variable(lr)
     # optimizer = tf.train.AdamOptimizer(learning_rate)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    # TODO: ? align with lr_decay
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.5)
+
 
     # Init models (optional, just for get_params function)
     # init_model(model, input_shape=(batch_size, width, height, channels)) DEPRECATED
 
-    variables_to_restore = model.variables #[x for x in model.variables if 'block1_conv1' not in x.name]
-    variables_to_save = model.variables
-    variables_to_optimize = model.variabl
+    # variables_to_restore = model.variables #[x for x in model.variables if 'block1_conv1' not in x.name]
+    # variables_to_save = model.variables
+    # TODO: check!!!
+    # variables_to_optimize = model.variables
+    variables_to_optimize = None
 
     # Init saver. can use also ckpt = tfe.Checkpoint((model=model, optimizer=optimizer,learning_rate=learning_rate, global_step=global_step)
     # saver_model = tfe.Saver(var_list=variables_to_save)
     # restore_model = tfe.Saver(var_list=variables_to_restore)
-    PATH = args.model_path
+    PATH = args.model_path + 'best.pth'
     saver_model = torch.save(model.state_dict(), PATH)
     restore_model = torch.save(model.state_dict(), PATH)
 
@@ -131,9 +139,9 @@ if __name__ == "__main__":
     # restore_state(restore_model, name_best_model) DEPRECATED
     # get_params(model)  DEPRECATED
 
-    train(loader=loader, model=model, epochs=epochs, batch_size=batch_size, augmenter='segmentation', lr=learning_rate,
+    train(loader=loader, model=model, epochs=epochs, batch_size=batch_size, augmenter='segmentation', lr=lr,
           init_lr=lr, saver=saver_model, variables_to_optimize=variables_to_optimize, name_best_model=name_best_model,
-          evaluation=True, preprocess_mode=None)
+          evaluation=True, preprocess_mode=None, optimizer = optimizer, scheduler = scheduler)
 
     # Test best model
     print('Testing model')

@@ -59,3 +59,8 @@ def depthwiseConv(kernel_size, strides=1, depth_multiplier=1, dilation_rate=1, u
     # ref https://gist.github.com/bdsaglam/b16de6ae6662e7a783e06e58e2c5185a
     pass
 
+
+def get_features(features, name):
+    def hook(model, input, output):
+        features[name] = output.detach()
+    return hook

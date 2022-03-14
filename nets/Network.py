@@ -2,16 +2,23 @@ from numpy import size
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pretrainedmodels
 from torchvision.models import resnet50
-from network_utils import *
+from .network_utils import *
+from .xception import xception
 
-class Segception_small(nn.Model):
+class Segception_small(nn.Module):
     def __init__(self, num_classes, input_shape=(None, None, 3), in_channels=3, weights='imagenet', **kwargs):
         super(Segception_small, self).__init__(**kwargs)
         # load pretrained Xception
-        # base_model = pretrainedmodels.__dict__['xception'](num_classes=1000, pretrained='imagenet')
-        base_model = resnet50(pretrained=True)
+
+        self.base_output = {}
+
+        base_model = xception(num_classes=1000, pretrained='imagenet')
+        base_model.block2.rep[2].register_forward_hook(get_features(self.base_output, 'block2_sepconv2_bn'))
+        base_model.block3.rep[2].register_forward_hook(get_features(self.base_output,'block3_sepconv2_bn'))
+        base_model.block4.rep[2].register_forward_hook(get_features(self.base_output,'block4_sepconv2_bn'))
+        base_model.block11.rep[2].register_forward_hook(get_features(self.base_output,'block11_sepconv2_bn'))
+        base_model.block12.rep[2].register_forward_hook(get_features(self.base_output,'block12_sepconv2_bn'))
         
         # TODO get the each layer output here
 
@@ -32,7 +39,8 @@ class Segception_small(nn.Model):
 
     def call(self, inputs, training=None, mask=None, aux_loss=False):
 
-        outputs = self.model_output(inputs, training=training)
+        # outputs = self.model_output(inputs, training=training)
+        outputs = list(self.base_output.values())
         # add activations to the ourputs of the model
         for i in range(len(outputs)):
             outputs[i] = nn.LeakyReLU(negative_slope=0.3)(outputs[i])
@@ -61,10 +69,11 @@ class Segception_small(nn.Model):
         if aux_loss:
             return x, x
         else:
-            return x
+            # TODO: ?why
+            return x, x
 
 
-class RefineNet(nn.Model):
+class RefineNet(nn.Module):
     def __init__(self, num_classes, base_model, **kwargs):
         super(RefineNet, self).__init__(**kwargs)
         # mirar si cabe en memoria RefineNet
@@ -87,7 +96,7 @@ class RefineNet(nn.Model):
 
         return segmentation
 
-class Conv_BN(nn.Model):
+class Conv_BN(nn.Module):
     def __init__(self, in_channels, filters, kernel_size, strides=1) -> None:
         super(Conv_BN, self).__init__()
 
@@ -96,7 +105,8 @@ class Conv_BN(nn.Model):
         self.strides = strides
 
         self.conv = conv(in_channels=in_channels, out_channels=filters, kernel_size=kernel_size, strides=strides)
-        self.bn = nn.BatchNorm2d(eps=1e-3, momentum=0.993)
+        # TODO: what is num_features
+        self.bn = nn.BatchNorm2d(num_features=in_channels, eps=1e-3, momentum=0.993)
     
     def call(self, inputs, training=None, activation=True):
         x = self.conv(inputs)
@@ -106,7 +116,7 @@ class Conv_BN(nn.Model):
         return x
 
 
-class DepthwiseConv_BN(nn.Model):
+class DepthwiseConv_BN(nn.Module):
     def __init__(self, in_channels, filters, kernel_size, strides=1, dilation_rate=1):
         super(DepthwiseConv_BN, self).__init__()
 
@@ -116,7 +126,7 @@ class DepthwiseConv_BN(nn.Model):
 
         self.conv = separableConv(filters=filters, kernel_size=kernel_size, strides=strides,
                                   dilation_rate=dilation_rate)
-        self.bn = nn.BatchNorm2d(eps=1e-3, momentum=0.993)
+        self.bn = nn.BatchNorm2d(num_features=in_channels, eps=1e-3, momentum=0.993)
 
     def call(self, inputs, training=None):
         x = self.conv(inputs)
@@ -126,7 +136,7 @@ class DepthwiseConv_BN(nn.Model):
         return x
 
 
-class Transpose_Conv_BN(nn.Model):
+class Transpose_Conv_BN(nn.Module):
     def __init__(self, in_channels, filters, kernel_size, strides=1):
         super(Transpose_Conv_BN, self).__init__()
 
@@ -135,7 +145,7 @@ class Transpose_Conv_BN(nn.Model):
         self.strides = strides
 
         self.conv = transposeConv(filters=filters, kernel_size=kernel_size, strides=strides)
-        self.bn = nn.BatchNorm2d(eps=1e-3, momentum=0.993)
+        self.bn = nn.BatchNorm2d(num_features=in_channels, eps=1e-3, momentum=0.993)
 
     def call(self, inputs, training=None):
         x = self.conv(inputs)
@@ -144,7 +154,7 @@ class Transpose_Conv_BN(nn.Model):
 
         return x
 
-class ShatheBlock(nn.Model):
+class ShatheBlock(nn.Module):
     def __init__(self, in_channels, filters, kernel_size,  dilation_rate=1, bottleneck=2) -> None:
         super(ShatheBlock, self).__init__()
 
@@ -163,7 +173,7 @@ class ShatheBlock(nn.Model):
         x = self.conv3(x, training=training)
         return x + inputs
 
-class ASPP(nn.Model):
+class ASPP(nn.Module):
     def __init__(self, in_channels, filters, kernel_size):
         super(ASPP, self).__init__()
 
@@ -190,7 +200,7 @@ class ASPP(nn.Model):
         return x
 
 
-class ASPP_2(nn.Model):
+class ASPP_2(nn.Module):
     def __init__(self, in_channels, filters, kernel_size):
         super(ASPP_2, self).__init__()
 
@@ -224,7 +234,7 @@ class ASPP_2(nn.Model):
         return x
 
 
-class EncoderAdaption(nn.Model):
+class EncoderAdaption(nn.Module):
     def __init__(self, in_channels, filters, kernel_size, dilation_rate=1) -> None:
         super(EncoderAdaption, self).__init__()
         self.filters = filters
@@ -239,7 +249,7 @@ class EncoderAdaption(nn.Model):
         return x
 
 
-class FeatureGeneration(nn.Model):
+class FeatureGeneration(nn.Module):
     def __init__(self, in_channels, filters, kernel_size, dilation_rate=1, blocks=3):
         super(FeatureGeneration, self).__init__()
 
