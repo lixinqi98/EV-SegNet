@@ -6,6 +6,7 @@ import nets.Network as Segception
 import utils.Loader as Loader
 from utils.utils import preprocess, lr_decay, convert_to_tensors, get_metrics
 import argparse
+import cv2
 
 # import setproctitle
 # import pdb
@@ -33,18 +34,24 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
         for step in range(steps_per_epoch):  # for every batch
             # get batch
             x, y, mask = loader.get_batch(size=batch_size, train=True, augmenter=augmenter)
+
             x = preprocess(x, mode=preprocess_mode)
             [x, y, mask] = convert_to_tensors([x, y, mask])
             x = torch.permute(x, (0, 3, 1, 2))
+            y = torch.permute(y, (0, 3, 1, 2))
+            mask = torch.permute(mask, (0, 1, 2))
             x = x[:, 0:3, :, :]
             y_, aux_y_ = model(x)  # get output of the model
 
             # loss = tf.losses.softmax_cross_entropy(y, y_, weights=mask)  # compute loss
             # loss_aux = tf.losses.softmax_cross_entropy(y, aux_y_, weights=mask)  # compute loss
+            # y=torch.reshape(y,(y.shape[0]*y.shape[1],y.shape[2],y.shape[3]))
+            # y_=torch.reshape(y_,(y_.shape[0]*y_.shape[1],y_.shape[2],y_.shape[3]))
+            # aux_y_=torch.reshape(aux_y_,(aux_y_.shape[0]*aux_y_.shape[1],aux_y_.shape[2],aux_y_.shape[3]))
 
-            loss = nn.CrossEntropyLoss()
-            loss = loss(y, y_)
-            loss_aux = loss(y, aux_y_)
+            XEloss = nn.CrossEntropyLoss(weight=mask)
+            loss = XEloss(y, y_)
+            loss_aux = XEloss(y, aux_y_)
             loss = 1 * loss + 0.8 * loss_aux
 
             if show_loss: print('Training loss: ' + str(loss.numpy()))
@@ -85,8 +92,8 @@ if __name__ == "__main__":
     parser.add_argument("--n_classes", help="number of classes to classify", default=6)
     parser.add_argument("--batch_size", help="batch size", default=2)
     parser.add_argument("--epochs", help="number of epochs to train", default=1)
-    parser.add_argument("--width", help="number of epochs to train", default=299)
-    parser.add_argument("--height", help="number of epochs to train", default=299)
+    parser.add_argument("--width", help="number of epochs to train", default=320)
+    parser.add_argument("--height", help="number of epochs to train", default=320)
     parser.add_argument("--lr", help="init learning rate", default=1e-3)
     parser.add_argument("--n_gpu", help="number of the gpu", default=7)
     args = parser.parse_args()

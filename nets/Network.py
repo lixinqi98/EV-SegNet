@@ -43,7 +43,7 @@ class Segception_small(nn.Module):
         self.conv_logits = conv(in_channels=32, out_channels=num_classes, kernel_size=1, strides=1, use_bias=True)
 
     def forward(self, inputs, training=None, mask=None, aux_loss=False):
-        # pdb.set
+
         # outputs = self.model_output(inputs)
         # emb1=self.model_output(inputs)
         self.base_model(inputs)

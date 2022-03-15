@@ -249,8 +249,8 @@ class Loader:
             mask_image = mask[index, :, :]
 
             # Reshape images if its needed
-            if img.shape[1] != self.width or img.shape[0] != self.height:
-                img = cv2.resize(img, (self.width, self.height), interpolation=cv2.INTER_AREA)
+            if img.shape[1] != 299 or img.shape[0] != 299:
+                img = cv2.resize(img, (299, 299), interpolation=cv2.INTER_AREA)
             if label.shape[1] != self.width or label.shape[0] != self.height:
                 label = cv2.resize(label, (self.width, self.height), interpolation=cv2.INTER_NEAREST)
                 if events:
@@ -289,7 +289,7 @@ class Loader:
 
         # Convert to categorical. Add one class for ignored pixels
         y = to_categorical(y, num_classes=self.n_classes)
-        y = y.reshape((a, b, c, self.n_classes)).astype(np.uint8)
+        y = y.reshape((a, b, c, self.n_classes)).astype(np.float32)
 
         return x, y, mask
 
