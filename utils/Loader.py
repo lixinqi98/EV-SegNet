@@ -238,6 +238,7 @@ class Loader:
 
                 # https://stackoverflow.com/questions/50746096/how-to-match-cv2-imread-to-the-keras-image-img-load-output
                 img = cv2.imread(random_images[index])
+                # img = cv2.resize(img, (299, 299))
                 img = img[...,::-1]
 
             label = cv2.imread(random_labels[index], 0)

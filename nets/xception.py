@@ -165,7 +165,7 @@ class Xception(nn.Module):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
-        pdb.set_trace()
+        # pdb.set_trace()
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu(x)

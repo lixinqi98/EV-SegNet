@@ -31,7 +31,8 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
             x, y, mask = loader.get_batch(size=batch_size, train=True, augmenter=augmenter)
             x = preprocess(x, mode=preprocess_mode)
             [x, y, mask] = convert_to_tensors([x, y, mask])
-
+            x = torch.permute(x, (0, 3, 1, 2))
+            x = x[:, 0:3, :, :]
             y_, aux_y_ = model(x)  # get output of the model
 
             # loss = tf.losses.softmax_cross_entropy(y, y_, weights=mask)  # compute loss
@@ -79,8 +80,8 @@ if __name__ == "__main__":
     parser.add_argument("--n_classes", help="number of classes to classify", default=6)
     parser.add_argument("--batch_size", help="batch size", default=2)
     parser.add_argument("--epochs", help="number of epochs to train", default=1)
-    parser.add_argument("--width", help="number of epochs to train", default=352)
-    parser.add_argument("--height", help="number of epochs to train", default=224)
+    parser.add_argument("--width", help="number of epochs to train", default=299)
+    parser.add_argument("--height", help="number of epochs to train", default=299)
     parser.add_argument("--lr", help="init learning rate", default=1e-3)
     parser.add_argument("--n_gpu", help="number of the gpu", default=0)
     args = parser.parse_args()
@@ -110,7 +111,8 @@ if __name__ == "__main__":
 
     # build model and optimizer
     model = Segception.Segception_small(num_classes=n_classes, weights=None, input_shape=(None, None, channels))
-
+    # import torchsummary as summary
+    # print(summary(model, (3, 299, 299)))
     # optimizer
     # learning_rate = tfe.Variable(lr)
     # optimizer = tf.train.AdamOptimizer(learning_rate)

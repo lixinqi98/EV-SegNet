@@ -35,14 +35,15 @@ def separableConv(filters, kernel_size, strides=1, dilation_rate=1, use_bias=Fal
     pass
     
 def upsampling(inputs, scale):
+    # TODO: check the upsampling direction? along x axial or y axial or both??
     return F.interpolate(inputs, 
-                         size=(input.size()[1], input.size()[2]), 
+                         size=(inputs.size()[2]*scale, inputs.size()[3]*scale), 
                          mode='bilinear', 
                          align_corners=False)
 
 def reshape_into(inputs, input_to_copy):
     return F.interpolate(inputs, 
-                         size=(input_to_copy.get_shape()[1].value, input_to_copy.get_shape()[2].value), 
+                         size=(input_to_copy.size()[2], input_to_copy.size()[3]), 
                          mode='bilinear', 
                          align_corners=False)
 
