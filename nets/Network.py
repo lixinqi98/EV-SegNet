@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torchvision.models import resnet50
 from .network_utils import *
 from .xception import xception
-
+import pdb
 class Segception_small(nn.Module):
     def __init__(self, num_classes, input_shape=(None, None, 3), in_channels=3, weights='imagenet', **kwargs):
         super(Segception_small, self).__init__(**kwargs)
@@ -43,8 +43,9 @@ class Segception_small(nn.Module):
         self.conv_logits = conv(in_channels=32, out_channels=num_classes, kernel_size=1, strides=1, use_bias=True)
 
     def forward(self, inputs, training=None, mask=None, aux_loss=False):
-
+        # pdb.set
         # outputs = self.model_output(inputs)
+        # emb1=self.model_output(inputs)
         self.base_model(inputs)
         outputs = [self.base_output['bn4'], #2048*10*10
                    self.base_output['block12_sepconv2_bn'], #1024*19*19

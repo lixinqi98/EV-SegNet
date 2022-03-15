@@ -7,6 +7,10 @@ import utils.Loader as Loader
 from utils.utils import preprocess, lr_decay, convert_to_tensors, get_metrics
 import argparse
 
+# import setproctitle
+# import pdb
+# setproctitle.setproctitle('SemSeg@xinshiduo')
+
 # enable eager mode
 # tf.enable_eager_execution()
 torch.manual_seed(7)
@@ -75,7 +79,8 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", help="Dataset path", default='test_data')
+    # parser.add_argument("--dataset", help="Dataset path", default='test_data')
+    parser.add_argument("--dataset", help="Dataset path", default="/data/xinshiduo/code/Ev-SegNet-master/dataset_our_codification/")
     parser.add_argument("--model_path", help="Model path", default='weights/model')
     parser.add_argument("--n_classes", help="number of classes to classify", default=6)
     parser.add_argument("--batch_size", help="batch size", default=2)
@@ -83,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument("--width", help="number of epochs to train", default=299)
     parser.add_argument("--height", help="number of epochs to train", default=299)
     parser.add_argument("--lr", help="init learning rate", default=1e-3)
-    parser.add_argument("--n_gpu", help="number of the gpu", default=0)
+    parser.add_argument("--n_gpu", help="number of the gpu", default=7)
     args = parser.parse_args()
 
     n_gpu = int(args.n_gpu)
