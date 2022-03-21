@@ -82,7 +82,7 @@ class Segception_small(nn.Module):
             return x, x
         else:
             # TODO: ?why
-            return x, x
+            return x
 
 
 class RefineNet(nn.Module):

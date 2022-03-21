@@ -41,17 +41,22 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
             y = torch.permute(y, (0, 3, 1, 2))
             mask = torch.permute(mask, (0, 1, 2))
             x = x[:, 0:3, :, :]
-            y_, aux_y_ = model(x)  # get output of the model
+            y_, aux_y_ = model(x, aux_loss=True)  # get output of the model
 
             # loss = tf.losses.softmax_cross_entropy(y, y_, weights=mask)  # compute loss
             # loss_aux = tf.losses.softmax_cross_entropy(y, aux_y_, weights=mask)  # compute loss
             # y=torch.reshape(y,(y.shape[0]*y.shape[1],y.shape[2],y.shape[3]))
             # y_=torch.reshape(y_,(y_.shape[0]*y_.shape[1],y_.shape[2],y_.shape[3]))
             # aux_y_=torch.reshape(aux_y_,(aux_y_.shape[0]*aux_y_.shape[1],aux_y_.shape[2],aux_y_.shape[3]))
-
-            XEloss = nn.CrossEntropyLoss(weight=mask)
-            loss = XEloss(y, y_)
-            loss_aux = XEloss(y, aux_y_)
+            target = torch.zeros((batch_size, y.shape[2], y.shape[3]))
+            for i in range(y.shape[1]):
+                target[torch.squeeze(y[:,i,:,:]==1)] = i
+                
+            # https://discuss.pytorch.org/t/cross-entropy-loss-error-on-image-segmentation/60194/12
+            # TODO: Check if this is correct? add a softmax
+            # y_ = y_.softmax(dim=1)
+            loss = nn.functional.cross_entropy(y_, target.long())
+            loss_aux = nn.functional.cross_entropy(aux_y_, target.long())
             loss = 1 * loss + 0.8 * loss_aux
 
             if show_loss: print('Training loss: ' + str(loss.numpy()))
@@ -70,7 +75,7 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
 
             #print('Train accuracy: ' + str(train_acc.numpy()))
             #print('Train miou: ' + str(train_miou))
-            print('Test accuracy: ' + str(test_acc.numpy()))
+            print('Test accuracy: ' + str(test_acc))
             print('Test miou: ' + str(test_miou))
             print('')
 
@@ -87,7 +92,7 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset", help="Dataset path", default='test_data')
-    parser.add_argument("--dataset", help="Dataset path", default="/data/xinshiduo/code/Ev-SegNet-master/dataset_our_codification/")
+    parser.add_argument("--dataset", help="Dataset path", default="test_data")
     parser.add_argument("--model_path", help="Model path", default='weights/model')
     parser.add_argument("--n_classes", help="number of classes to classify", default=6)
     parser.add_argument("--batch_size", help="batch size", default=2)

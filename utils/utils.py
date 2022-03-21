@@ -4,6 +4,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.transforms.functional as fn
+import torchvision.transforms as T
 from sklearn.metrics import confusion_matrix
 import math
 import os
@@ -36,12 +38,18 @@ def convert_to_tensors(list_to_convert):
 
 
 # # Erase the elements if they are from ignore class. returns the labesl and predictions with no ignore labels
-# def erase_ignore_pixels(labels, predictions, mask):
-#     indices = tf.squeeze(tf.where(tf.greater(mask, 0)))  # not ignore labels
-#     labels = tf.cast(tf.gather(labels, indices), tf.int64)
-#     predictions = tf.gather(predictions, indices)
+# TODO: check if this is correct
+def erase_ignore_pixels(labels, predictions, mask):
+    # indices = torch.squeeze(mask[mask > 0])  # not ignore labels
+    # labels = torch.gather(labels, indices).type(torch.int64)
+    # predictions = torch.gather(predictions, indices)
+    # mask = mask[:,None]
+    # mask = mask.expand(-1, 6)
 
-#     return labels, predictions
+    labels = labels * mask
+    predictions = predictions * mask
+    return labels, predictions
+
 
 # generate and write an image into the disk
 def generate_image(image_scores, output_dir, dataset, loader, train=False):
@@ -72,30 +80,32 @@ def generate_image(image_scores, output_dir, dataset, loader, train=False):
 
 def inference(model, batch_images, n_classes, flip_inference=True, scales=[1], preprocess_mode=None):
     x = preprocess(batch_images, mode=preprocess_mode)
-    [x] = convert_to_tensors([x])
-
+    # [x] = convert_to_tensors([x])
+    x = torch.permute(x, (0, 3, 1, 2))
+    # TODO: 3 dimension?
+    x = x[:, 0:3, :, :]
     # creates the variable to store the scores
-    y_ = convert_to_tensors([np.zeros((x.shape[0], x.shape[1], x.shape[2], n_classes), dtype=np.float32)])[0]
+    y_ = convert_to_tensors([np.zeros((x.shape[0], n_classes, x.shape[2], x.shape[3]), dtype=np.float32)])[0]
 
     for scale in scales:
         # scale the image
-        x_scaled = tf.image.resize_images(x, (x.shape[1].value * scale, x.shape[2].value * scale),
-                                          method=tf.image.ResizeMethod.BILINEAR, align_corners=True)
+        x_scaled = fn.resize(x, (x.shape[2]* scale, x.shape[3] * scale),
+                            interpolation=T.InterpolationMode.BILINEAR)
         y_scaled = model(x_scaled, training=False)
         #  rescale the output
-        y_scaled = tf.image.resize_images(y_scaled, (x.shape[1].value, x.shape[2]),
-                                          method=tf.image.ResizeMethod.BILINEAR, align_corners=True)
+        y_scaled = fn.resize(y_scaled, (x.shape[2], x.shape[3]),
+                                          interpolation=T.InterpolationMode.BILINEAR)
         # get scores
-        y_scaled = tf.nn.softmax(y_scaled)
+        y_scaled = F.softmax(y_scaled)
 
         if flip_inference:
             # calculates flipped scores
-            y_flipped_ = tf.image.flip_left_right(model(tf.image.flip_left_right(x_scaled), training=False))
+            y_flipped_ = torch.flip(model(torch.flip(x_scaled), training=False))
             # resize to rela scale
-            y_flipped_ = tf.image.resize_images(y_flipped_, (x.shape[1].value, x.shape[2]),
-                                                method=tf.image.ResizeMethod.BILINEAR, align_corners=True)
+            y_flipped_ = fn.resize(y_flipped_, (x.shape[1].value, x.shape[2]),
+                                                interpolation=T.InterpolationMode.BILINEAR)
             # get scores
-            y_flipped_score = tf.nn.softmax(y_flipped_)
+            y_flipped_score = F.softmax(y_flipped_)
 
             y_scaled += y_flipped_score
 
@@ -111,7 +121,7 @@ def get_metrics(loader, model, n_classes, train=True, flip_inference=False, scal
     else:
         loader.index_test = 0
 
-    accuracy = tfe.metrics.Accuracy()
+    # accuracy = tf.metrics.Accuracy()
     conf_matrix = np.zeros((n_classes, n_classes))
     if train:
         samples = len(loader.image_train_list)
@@ -120,8 +130,13 @@ def get_metrics(loader, model, n_classes, train=True, flip_inference=False, scal
 
     for step in range(samples):  # for every batch
         x, y, mask = loader.get_batch(size=1, train=train, augmenter=False)
-
-        [y] = convert_to_tensors([y])
+        x = torch.from_numpy(x)
+        y = torch.from_numpy(y)
+        mask = torch.from_numpy(mask)
+        # y = torch.permute(y, (0, 3, 1, 2))
+        # mask = torch.permute(mask, (0, 1, 2))
+        
+        # [y] = convert_to_tensors([y])
         y_ = inference(model, x, n_classes, flip_inference, scales, preprocess_mode=preprocess_mode)
 
         # generate images
@@ -129,16 +144,18 @@ def get_metrics(loader, model, n_classes, train=True, flip_inference=False, scal
             generate_image(y_[0,:,:,:], 'images_out', loader.dataFolderPath, loader, train)
 
         # Rephape
-        y = tf.reshape(y, [y.shape[1] * y.shape[2] * y.shape[0], y.shape[3]])
-        y_ = tf.reshape(y_, [y_.shape[1] * y_.shape[2] * y_.shape[0], y_.shape[3]])
-        mask = tf.reshape(mask, [mask.shape[1] * mask.shape[2] * mask.shape[0]])
+        y_ = torch.permute(y_, (0, 2, 3, 1))
+        y = torch.reshape(y, [y.shape[1] * y.shape[2] * y.shape[0], y.shape[3]])
+        y_ = torch.reshape(y_, [y_.shape[1] * y_.shape[2] * y_.shape[0], y_.shape[3]])
+        mask = torch.reshape(mask, [mask.shape[1] * mask.shape[2] * mask.shape[0]])
 
-        labels, predictions = erase_ignore_pixels(labels=tf.argmax(y, 1), predictions=tf.argmax(y_, 1), mask=mask)
-        accuracy(labels, predictions)
+        labels, predictions = erase_ignore_pixels(labels=torch.argmax(y, 1), predictions=torch.argmax(y_, 1), mask=mask)
+        acc = (labels == predictions).sum() / labels.size(0)
+        
         conf_matrix += confusion_matrix(labels.numpy(), predictions.numpy(), labels=range(0, n_classes))
 
     # get the train and test accuracy from the model
-    return accuracy.result(), compute_iou(conf_matrix)
+    return acc.item(), compute_iou(conf_matrix)
 
 # computes the miou given a confusion amtrix
 def compute_iou(conf_matrix):
