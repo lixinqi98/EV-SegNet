@@ -18,7 +18,7 @@ class Segception_small(nn.Module):
 # 2(37)
 # 12(19)
 # bn4(10)
-        self.base_model = xception(num_classes=1000, pretrained='imagenet')
+        self.base_model = xception(num_classes=1000, pretrained='imagenet').cuda()
         self.base_model.bn2.register_forward_hook(get_features(self.base_output, 'bn2'))
         self.base_model.block1.rep[4].register_forward_hook(get_features(self.base_output,'block1_sepconv2_bn'))
         self.base_model.block2.rep[4].register_forward_hook(get_features(self.base_output,'block2_sepconv2_bn'))
@@ -60,6 +60,7 @@ class Segception_small(nn.Module):
         x = upsampling(x, scale=2)
         # TODO: why here the author's comment is 512??
         x += reshape_into(self.adap_encoder_2(outputs[1]), x)  # 512
+        # pdb.set_trace()
         x = self.decoder_conv_1(x)  # 256
 
         x = upsampling(x, scale=2)
@@ -273,7 +274,7 @@ class FeatureGeneration(nn.Module):
         self.blocks = []
         for n in range(blocks):
             self.blocks = self.blocks + [
-                ShatheBlock(self.filters, self.filters, kernel_size=kernel_size, dilation_rate=dilation_rate)]
+                ShatheBlock(self.filters, self.filters, kernel_size=kernel_size, dilation_rate=dilation_rate).cuda()]
 
     def forward(self, inputs, training=None):
 
@@ -294,6 +295,7 @@ class SeparableConv2d(nn.Module):
                                 kernel_size=1, bias=bias)
 
     def forward(self, x):
+        # pdb.set_trace()
         out = self.depthwise(x)
         out = self.pointwise(out)
         return out

@@ -7,6 +7,8 @@ import cv2
 from .augmenters import get_augmenter
 from PIL import Image
 
+TRAIN_SIZE=0.1
+
 np.random.seed(7)
 problemTypes = ['classification', 'segmentation']
 
@@ -122,7 +124,11 @@ class Loader:
 
             # Shuffle train
             self.suffle_segmentation()
+            rd=np.random.rand(len(self.image_train_list))
 
+            self.image_train_list = self.image_train_list[rd< TRAIN_SIZE ]
+            self.events_train_list = self.events_train_list[rd< TRAIN_SIZE ]
+            self.label_train_list = self.label_train_list[rd< TRAIN_SIZE ]
             print('Loaded ' + str(len(self.image_train_list)) + ' training samples')
             print('Loaded ' + str(len(self.image_test_list)) + ' testing samples')
             self.n_classes = n_classes

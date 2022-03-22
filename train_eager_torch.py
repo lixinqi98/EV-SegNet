@@ -8,9 +8,9 @@ from utils.utils import preprocess, lr_decay, convert_to_tensors, get_metrics
 import argparse
 import cv2
 
-# import setproctitle
-# import pdb
-# setproctitle.setproctitle('SemSeg@xinshiduo')
+import setproctitle
+import pdb
+setproctitle.setproctitle('SemSeg@xinshiduo')
 
 # enable eager mode
 # tf.enable_eager_execution()
@@ -31,15 +31,16 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
         # lr_decay(lr, init_lr, 1e-9, epoch, epochs - 1)  # compute the new lr
         scheduler.step()
         print('epoch: ' + str(epoch) + '. Learning rate: ' + str(lr))
+        loss_all=0
         for step in range(steps_per_epoch):  # for every batch
             # get batch
             x, y, mask = loader.get_batch(size=batch_size, train=True, augmenter=augmenter)
 
             x = preprocess(x, mode=preprocess_mode)
             [x, y, mask] = convert_to_tensors([x, y, mask])
-            x = torch.permute(x, (0, 3, 1, 2))
-            y = torch.permute(y, (0, 3, 1, 2))
-            mask = torch.permute(mask, (0, 1, 2))
+            x = torch.permute(x, (0, 3, 1, 2)).cuda()
+            y = torch.permute(y, (0, 3, 1, 2)).cuda()
+            mask = torch.permute(mask, (0, 1, 2)).cuda()
             x = x[:, 0:3, :, :]
             y_, aux_y_ = model(x, aux_loss=True)  # get output of the model
 
@@ -48,7 +49,7 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
             # y=torch.reshape(y,(y.shape[0]*y.shape[1],y.shape[2],y.shape[3]))
             # y_=torch.reshape(y_,(y_.shape[0]*y_.shape[1],y_.shape[2],y_.shape[3]))
             # aux_y_=torch.reshape(aux_y_,(aux_y_.shape[0]*aux_y_.shape[1],aux_y_.shape[2],aux_y_.shape[3]))
-            target = torch.zeros((batch_size, y.shape[2], y.shape[3]))
+            target = torch.zeros((batch_size, y.shape[2], y.shape[3])).cuda()
             for i in range(y.shape[1]):
                 target[torch.squeeze(y[:,i,:,:]==1)] = i
                 
@@ -58,7 +59,7 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
             loss = nn.functional.cross_entropy(y_, target.long())
             loss_aux = nn.functional.cross_entropy(aux_y_, target.long())
             loss = 1 * loss + 0.8 * loss_aux
-
+            loss_all+=loss
             if show_loss: print('Training loss: ' + str(loss.numpy()))
 
             # Gets gradients and applies them
@@ -70,21 +71,28 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
         if evaluation:
             # get metrics
             #train_acc, train_miou = get_metrics(loader, model, loader.n_classes, train=True, preprocess_mode=preprocess_mode)
+            model.eval()
             test_acc, test_miou = get_metrics(loader, model, loader.n_classes, train=False, flip_inference=False,
                                               scales=[1], preprocess_mode=preprocess_mode)
-
+            model.train()
             #print('Train accuracy: ' + str(train_acc.numpy()))
             #print('Train miou: ' + str(train_miou))
             print('Test accuracy: ' + str(test_acc))
             print('Test miou: ' + str(test_miou))
             print('')
-
+            with open('./res_10tr.txt','a') as f:
+               
+                f.write("%f,%f,%f" % (
+                    loss_all,test_acc,test_miou
+                ))
+                f.write("\n")
             # save model if bet
             if test_miou > best_miou:
                 best_miou = test_miou
-                saver.save(name_best_model)
+                torch.save(model.state_dict(), './bestmodel.tar')
         else:
-              saver.save(name_best_model)
+            torch.save(model.state_dict(), './bestmodel.tar')
+            # model.load_state_dict(torch.load('./bestmodel.tar',map_location=device))
 
         loader.suffle_segmentation()  # sheffle trainign set
 
@@ -92,15 +100,15 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # parser.add_argument("--dataset", help="Dataset path", default='test_data')
-    parser.add_argument("--dataset", help="Dataset path", default="test_data")
+    parser.add_argument("--dataset", help="Dataset path", default="/data/xinshiduo/code/Ev-SegNet-master/dataset_our_codification/")
     parser.add_argument("--model_path", help="Model path", default='weights/model')
     parser.add_argument("--n_classes", help="number of classes to classify", default=6)
-    parser.add_argument("--batch_size", help="batch size", default=2)
-    parser.add_argument("--epochs", help="number of epochs to train", default=1)
+    parser.add_argument("--batch_size", help="batch size", default=8)
+    parser.add_argument("--epochs", help="number of epochs to train", default=100)
     parser.add_argument("--width", help="number of epochs to train", default=320)
     parser.add_argument("--height", help="number of epochs to train", default=320)
     parser.add_argument("--lr", help="init learning rate", default=1e-3)
-    parser.add_argument("--n_gpu", help="number of the gpu", default=7)
+    parser.add_argument("--n_gpu", help="number of the gpu", default=3)
     args = parser.parse_args()
 
     n_gpu = int(args.n_gpu)
@@ -113,7 +121,7 @@ if __name__ == "__main__":
     width =  int(args.width)
     height =  int(args.height)
     lr = float(args.lr)
-
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     channels = 6 # input of 6 channels
     channels_image = 0
     channels_events = channels - channels_image
@@ -128,6 +136,7 @@ if __name__ == "__main__":
 
     # build model and optimizer
     model = Segception.Segception_small(num_classes=n_classes, weights=None, input_shape=(None, None, channels))
+    model=model.to(device)
     # import torchsummary as summary
     # print(summary(model, (3, 299, 299)))
     # optimizer

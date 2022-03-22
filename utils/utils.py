@@ -10,7 +10,7 @@ from sklearn.metrics import confusion_matrix
 import math
 import os
 import cv2
-
+import pdb
 
 # preprocess a batch of images
 def preprocess(x, mode='imagenet'):
@@ -86,7 +86,7 @@ def inference(model, batch_images, n_classes, flip_inference=True, scales=[1], p
     x = x[:, 0:3, :, :]
     # creates the variable to store the scores
     y_ = convert_to_tensors([np.zeros((x.shape[0], n_classes, x.shape[2], x.shape[3]), dtype=np.float32)])[0]
-
+    y_=y_.cuda()
     for scale in scales:
         # scale the image
         x_scaled = fn.resize(x, (x.shape[2]* scale, x.shape[3] * scale),
@@ -108,7 +108,7 @@ def inference(model, batch_images, n_classes, flip_inference=True, scales=[1], p
             y_flipped_score = F.softmax(y_flipped_)
 
             y_scaled += y_flipped_score
-
+        # pdb.set_trace()
         y_ += y_scaled
 
     return y_
@@ -130,9 +130,9 @@ def get_metrics(loader, model, n_classes, train=True, flip_inference=False, scal
 
     for step in range(samples):  # for every batch
         x, y, mask = loader.get_batch(size=1, train=train, augmenter=False)
-        x = torch.from_numpy(x)
-        y = torch.from_numpy(y)
-        mask = torch.from_numpy(mask)
+        x = torch.from_numpy(x).cuda()
+        y = torch.from_numpy(y).cuda()
+        mask = torch.from_numpy(mask).cuda()
         # y = torch.permute(y, (0, 3, 1, 2))
         # mask = torch.permute(mask, (0, 1, 2))
         
@@ -152,7 +152,7 @@ def get_metrics(loader, model, n_classes, train=True, flip_inference=False, scal
         labels, predictions = erase_ignore_pixels(labels=torch.argmax(y, 1), predictions=torch.argmax(y_, 1), mask=mask)
         acc = (labels == predictions).sum() / labels.size(0)
         
-        conf_matrix += confusion_matrix(labels.numpy(), predictions.numpy(), labels=range(0, n_classes))
+        conf_matrix += confusion_matrix(labels.cpu().numpy(), predictions.cpu().numpy(), labels=range(0, n_classes))
 
     # get the train and test accuracy from the model
     return acc.item(), compute_iou(conf_matrix)
