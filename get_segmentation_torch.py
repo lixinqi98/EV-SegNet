@@ -1,7 +1,5 @@
 from __future__ import print_function, absolute_import, division
 import numpy as np
-import tensorflow as tf
-import tensorflow.contrib.eager as tfec
 import torch
 import torch.nn as nn
 import os
@@ -14,7 +12,7 @@ from collections import namedtuple
 # enable eager mode
 # tf.enable_eager_execution()
 torch.manual_seed(7)
-np.random_seed(7)
+# np.random_seed(7)
 
 Label = namedtuple( 'Label' , [
 
@@ -113,7 +111,7 @@ if __name__ == "__main__":
 
 
     # build model and optimizer
-    model = Segception.Segception_v4(num_classes=n_classes, weights=None, input_shape=(None, None, channels))
+    model = Segception.Segception_small(num_classes=n_classes, weights=None, input_shape=(None, None, channels))
 
     # Init models (optional, just for get_params function)
     init_model(model, input_shape=(1, width, height, channels))
@@ -131,7 +129,10 @@ if __name__ == "__main__":
     restore_model = torch.save(model.state_dict(), PATH)
 
     # restore if model saved and show number of params
-    restore_state(restore_model, name_best_model)
+    # restore_state(restore_model, name_best_model)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = model.load_state_dict(torch.load('./bestmodel.tar',map_location=device))
+    model.to(device)
     get_params(model)
 
 
@@ -143,7 +144,7 @@ if __name__ == "__main__":
 
     prediction = inference(model, img, n_classes, flip_inference=True, scales=[0.75, 1, 1.5], preprocess_mode=None)
     print(prediction.numpy().shape)
-    prediction = tf.argmax(prediction, -1)
+    prediction = torch.argmax(prediction, -1)
     print(prediction.numpy().shape)
 
     img = np.squeeze(img).astype(np.uint8)
