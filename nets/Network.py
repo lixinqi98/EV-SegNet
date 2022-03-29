@@ -128,7 +128,7 @@ class Conv_BN(nn.Module):
         return x
 
 
-class  DepthwiseConv_BN(nn.Module):
+class DepthwiseConv_BN(nn.Module):
     def __init__(self, in_channels, filters, kernel_size, strides=1, dilation_rate=1):
         super(DepthwiseConv_BN, self).__init__()
 

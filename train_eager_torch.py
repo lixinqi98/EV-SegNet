@@ -69,6 +69,7 @@ def train(loader, model, epochs=5, batch_size=2, show_loss=False, augmenter=None
             optimizer.step()
         if evaluation:
             # get metrics
+            
             #train_acc, train_miou = get_metrics(loader, model, loader.n_classes, train=True, preprocess_mode=preprocess_mode)
             test_acc, test_miou = get_metrics(loader, model, loader.n_classes, train=False, flip_inference=False,
                                               scales=[1], preprocess_mode=preprocess_mode)

@@ -5,8 +5,8 @@ import torch.nn as nn
 import os
 import nets.Network as Segception
 import argparse
-from utils.utils import get_params, restore_state, init_model, inference
 import cv2
+from utils.utils import inference
 from collections import namedtuple
 
 # enable eager mode
@@ -93,11 +93,11 @@ def fromIdTrainToId(imgin):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_path", help="image path", default='/media/snowflake/Data/city/images/train/aachen_000003_000019_gtFine_labelIds.png')
+    parser.add_argument("--image_path", help="image path", default='test_data/images/test/rec1487417411_export_100.png')
     parser.add_argument("--model_path", help="Model path", default='weights/cityscapes_grayscale')
-    parser.add_argument("--n_classes", help="number of classes to classify", default=19)
-    parser.add_argument("--width", help="number of epochs to train", default=352)
-    parser.add_argument("--height", help="number of epochs to train", default=224)
+    parser.add_argument("--n_classes", help="number of classes to classify", default=6)
+    parser.add_argument("--width", help="number of epochs to train", default=320)
+    parser.add_argument("--height", help="number of epochs to train", default=320)
     parser.add_argument("--n_gpu", help="number of the gpu", default=0)
     args = parser.parse_args()
 
@@ -114,45 +114,52 @@ if __name__ == "__main__":
     model = Segception.Segception_small(num_classes=n_classes, weights=None, input_shape=(None, None, channels))
 
     # Init models (optional, just for get_params function)
-    init_model(model, input_shape=(1, width, height, channels))
+    # init_model(model, input_shape=(1, width, height, channels))
 
-    variables_to_restore = model.variables
-    variables_to_save = model.variables
-    variables_to_optimize = model.variables
+    # variables_to_restore = model.variables
+    # variables_to_save = model.variables
+    # variables_to_optimize = model.variables
 
     # Init saver. can use also ckpt = tfe.Checkpoint((model=model, optimizer=optimizer,learning_rate=learning_rate, global_step=global_step)
     # saver_model = tfe.Saver(var_list=variables_to_save)
     # restore_model = tfe.Saver(var_list=variables_to_restore)
 
-    PATH = args.model_path
-    saver_model = torch.save(model.state_dict(), PATH)
-    restore_model = torch.save(model.state_dict(), PATH)
+    # PATH = args.model_path
+    # saver_model = torch.save(model.state_dict(), PATH)
+    # restore_model = torch.save(model.state_dict(), PATH)
 
     # restore if model saved and show number of params
     # restore_state(restore_model, name_best_model)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = model.load_state_dict(torch.load('./bestmodel.tar',map_location=device))
+    model.load_state_dict(torch.load('./bestmodel.tar',map_location=device))
     model.to(device)
-    get_params(model)
+    # get_params(model)
 
 
     img = cv2.imread(args.image_path, 0)
     img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA).astype(np.float32)
-    img = np.expand_dims(img, -1)
+    
+    if len(img.shape) == 2:
+        img = np.expand_dims(img, -1)
+        img = np.repeat(img, 3, axis=2)
+    
     img = np.expand_dims(img, 0)
     print(img.shape)
 
-    prediction = inference(model, img, n_classes, flip_inference=True, scales=[0.75, 1, 1.5], preprocess_mode=None)
-    print(prediction.numpy().shape)
-    prediction = torch.argmax(prediction, -1)
-    print(prediction.numpy().shape)
+    prediction = inference(model, torch.from_numpy(img), n_classes, flip_inference=False, scales=[1,1,1], preprocess_mode=None)
+    print(prediction.detach().numpy().shape)
+    prediction = torch.argmax(prediction, dim=1)
+    print(prediction.detach().numpy().shape)
 
     img = np.squeeze(img).astype(np.uint8)
-    prediction = np.squeeze(prediction.numpy()).astype(np.uint8)
+    prediction = np.squeeze(prediction.detach().numpy()).astype(np.uint8)
     prediction_6classes = fromIdTrainToId(prediction).astype(np.uint8)
 
-    cv2.imshow('image', img)
-    cv2.imshow('pred (cityscapes classes)', prediction*13) # *13 for visualization
-    cv2.imshow('pred (event classes)', prediction_6classes*40)# *40 for visualization
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('image', img)
+    # cv2.imshow('pred (cityscapes classes)', prediction*13) # *13 for visualization
+    # cv2.imshow('pred (event classes)', prediction_6classes*40)# *40 for visualization
+    cv2.imwrite('./image.jpg', img)
+    cv2.imwrite('./pred(citycapesClass).jpg', prediction*13)
+    cv2.imwrite('./pred(event classes).jpg', prediction_6classes*40)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()

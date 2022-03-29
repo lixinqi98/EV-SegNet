@@ -89,7 +89,7 @@ def inference(model, batch_images, n_classes, flip_inference=True, scales=[1], p
 
     for scale in scales:
         # scale the image
-        x_scaled = fn.resize(x, (x.shape[2]* scale, x.shape[3] * scale),
+        x_scaled = fn.resize(x, (int(x.shape[2]* scale), int(x.shape[3] * scale)),
                             interpolation=T.InterpolationMode.BILINEAR)
         y_scaled = model(x_scaled, training=False)
         #  rescale the output
