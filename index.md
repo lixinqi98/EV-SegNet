@@ -1,4 +1,4 @@
-# EV-SegNet: Semantic Segmentation for Event-based Cameras
+> []# EV-SegNet: Semantic Segmentation for Event-based Cameras
 
 ## Introduction
   To capture the dynamic intensity changes during events, promising sensors such as event cameras or Dynamic Vision Sensor (DVS) are often adopted. While these cameras provide high temporal resolution, high dynamic range and require low on power and bandwidth, deep learning method still barely use the images of these cameras. The main reasons are 
@@ -20,7 +20,7 @@ For a given image, one would expect a segmentation algorithm to recognize the se
 Unlike RGB conventional image, which is 3-dimensional (height, width and 3 channels), the output of an event camera does not have an standard representation. Events are asynchronous and some previous encodings of events do not provide good input for CNNs.
 
 ### Event Representation
-In order to better train a CNN model with event data, the paper proposed an event data representation which is 6 channels. The first two channels are the histogram of positive and negative events. Second two and the last two are the mean and standard deviation of the normalized timestamps of events happening at each pixel for positive and nagative events.Thus the six channels are $Hist(x, y, -1)$, $Hist(x, y, +1)$, $M(x, y, -1)$, $M(x, y, +1)$, $S(x, y, -1)$, $Hist(x, y, +1)$.
+In order to better train a CNN model with event data, the paper proposed an event data representation which is 6 channels. The first two channels are the histogram of positive and negative events. Second two and the last two are the mean and standard deviation of the normalized timestamps of events happening at each pixel for positive and nagative events.Thus the six channels are $Hist(x, y, -1)$, $Hist(x, y, +1)$, $M(x, y, -1)$, $M(x, y, +1)$, $S(x, y, -1)$, $S(x, y, +1)$.
 
 ### Dataset 
 To train a CNN model with the proposed 6 event  representation, the paper constructed the corresponding dataset with that representation. Its data is an extension for semantic segmentation of the DDD17 dataset, which consists of 40 sequences of diffenrent driving set-ups. The extension first select 6 out of the whole 40 sequences based on two criteria(day-time video and no extreme overexposure) in order to achieve better result. And then it trained another CNN to automatically generate semantic segmentation labels to be used as ground truth. So wrap it up, the X of the dataset is the proposed 6 channels event representation and Y of the dataset is the automatically generated semantic segmentation labels. So next, we are going to introduce the model.
@@ -50,12 +50,12 @@ Xception is the main training focus, and is also where our biggest problem came 
 ## Experiments & Results
 
 ### Experimental Environments
-| Setting     | Description                       |
-| ----------- | --------------------------------- |
-| System      | Ubuntu 16.04.7 LTS (Xenial Xerus) |
-| GPU         | Nvidia GTX 2080Ti                 |
-| Language    | Python3                           |
-| Packages    | PyTorch1.9, TensorFlow1.13        |
+| Setting     | Description                       |  
+| ----------- | --------------------------------- |  
+| System      | Ubuntu 16.04.7 LTS (Xenial Xerus) |  
+| GPU         | Nvidia GTX 2080Ti                 |  
+| Language    | Python3                           |  
+| Packages    | PyTorch1.9, TensorFlow1.13        |  
 
 ### Variant 1 - TensorFlow to PyTorch
 The author's code was written in TensorFlow v1.13 which is outdated and not very efficient. In our experiment, this version only occupies around 22% voltage utility of one GPU node. Besides, the PyTorch framework is more tightly integrated with Python and we are more family with this. So our first variant is trying to migrate the TensorFlow version to the PyTorch platform. 
@@ -119,16 +119,16 @@ We reproduce the original tensorflow version on three different learning rate, w
 
 
 ## Work Division
-| Name              | Work                                                          |
-| ----------------- | ---------------------------------                             |
-| Shiduo Xin        | Run the original code in TensorFlow                           |
-|                   | Integrating and debugging the whole model                     |
-|                   | Hyperparameter Check                                          |
-|                   | Writing Blog (Experiment)                                     |
-| Xinqi Li          | Rewrite TensorFlow code to PyTorch (model)                    |
-|                   | Integrating and debugging the whole model                     |
-|                   | Writing Blog (Experiment)                                     |
-| Dongxu Lu         | Rewrite TensorFlow code to PyTorch (framework)                |
-|                   | Writing Blog (Introduction, Related Work) and organize content|
-| Kexin Su          | Rewrite TensorFlow code to PyTorch (data loader)              |
-|                   | Wriring Blog (Model Architecture, Data)                       |
+| Name              | Work                                                          |  
+| ----------------- | ---------------------------------                             |  
+| Shiduo Xin        | Run the original code in TensorFlow                           |  
+|                   | Integrating and debugging the whole model                     |  
+|                   | Hyperparameter Check                                          |  
+|                   | Writing Blog (Experiment)                                     |  
+| Xinqi Li          | Rewrite TensorFlow code to PyTorch (model)                    |  
+|                   | Integrating and debugging the whole model                     |  
+|                   | Writing Blog (Experiment)                                     |  
+| Dongxu Lu         | Rewrite TensorFlow code to PyTorch (framework)                |  
+|                   | Writing Blog (Introduction, Related Work) and organize content|  
+| Kexin Su          | Rewrite TensorFlow code to PyTorch (data loader)              |  
+|                   | Wriring Blog (Data, Model Architecture)                       |  
