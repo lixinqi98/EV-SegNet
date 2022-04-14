@@ -111,8 +111,7 @@ We reproduce the original tensorflow version on three different learning rate, w
 
 ## Conclusions
 
-- The model of this paper performs well in terms of metrics like accuracy & IoU, but seems not function well on segmenting an arbitrary RGB img.
-- During this reproduction, we get a better understanding of PyTorch and the image segmentation.
+This paper aims to apply the image segmentation to the event based images, using a new image representation method. The application is new but suffers from the lacking of dataset. The model of this paper performs well in terms of metrics like accuracy, but seems not function well on segmenting an arbitrary image. We try our best and also discuss with other teams, all our output images look bad because the relatively low IoU. During this reproduction, we get a better understanding of PyTorch and the image segmentation. 
 
 
 ## Reference
@@ -126,14 +125,14 @@ We reproduce the original tensorflow version on three different learning rate, w
 ## Work Division
 | Name              | Work                                                          |  
 | ----------------- | ---------------------------------                             |  
-| Shiduo Xin        | Run the original code in TensorFlow                           |  
+| Shiduo Xin (5673119) mtcxnbss@gmail.com       | Run the original code in TensorFlow                           |  
 |                   | Integrating and debugging the whole model                     |  
 |                   | Hyperparameter Check                                          |  
 |                   | Writing Blog (Experiment)                                     |  
-| Xinqi Li          | Rewrite TensorFlow code to PyTorch (model)                    |  
+| Xinqi Li（5478073）X.Li-63@student.tudelft.nl | Rewrite TensorFlow code to PyTorch (model)                    |  
 |                   | Integrating and debugging the whole model                     |  
 |                   | Writing Blog (Experiment)                                     |  
-| Dongxu Lu         | Rewrite TensorFlow code to PyTorch (framework)                |  
+| Dongxu Lu (5503426)         | Rewrite TensorFlow code to PyTorch (framework)                |  
 |                   | Writing Blog (Introduction, Related Work) and organize content|  
-| Kexin Su          | Rewrite TensorFlow code to PyTorch (data loader)              |  
+| Kexin Su (5591597) k.su-1@student.tudelft.nl | Rewrite TensorFlow code to PyTorch (data loader)              |  
 |                   | Wriring Blog (Data, Model Architecture)                       |  
