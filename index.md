@@ -1,11 +1,11 @@
 
 # EV-SegNet: Semantic Segmentation for Event-based Cameras
 The code repository : [lixinqi98/EV-SegNet](https://github.com/lixinqi98/EV-SegNet)
-- Group Members:
-  Dongxv Lu   5503426
-  Kexin Su    5591597
-  Shiduo Xin  5673119
-  Xinqi Li    5478073
+### Group Members:
+-  Dongxv Lu   5503426
+-  Kexin Su    5591597
+-  Shiduo Xin  5673119
+-  Xinqi Li    5478073
 ## Introduction
 To capture the dynamic intensity changes during events, promising sensors such as event cameras or Dynamic Vision Sensor (DVS) are often adopted. While these cameras provide high temporal resolution, high dynamic range and require low on power and bandwidth, deep learning method still barely use the images of these cameras. The main reasons are 
 1. No standard output images of these cameras；
