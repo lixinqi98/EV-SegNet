@@ -1,7 +1,7 @@
-> []# EV-SegNet: Semantic Segmentation for Event-based Cameras
+# EV-SegNet: Semantic Segmentation for Event-based Cameras
 
 ## Introduction
-  To capture the dynamic intensity changes during events, promising sensors such as event cameras or Dynamic Vision Sensor (DVS) are often adopted. While these cameras provide high temporal resolution, high dynamic range and require low on power and bandwidth, deep learning method still barely use the images of these cameras. The main reasons are 
+To capture the dynamic intensity changes during events, promising sensors such as event cameras or Dynamic Vision Sensor (DVS) are often adopted. While these cameras provide high temporal resolution, high dynamic range and require low on power and bandwidth, deep learning method still barely use the images of these cameras. The main reasons are 
 1. No standard output images of these cameras；
 2. No common representation of the stream to feed a CNN；
 3. Lack of labelled training data. 
@@ -110,6 +110,7 @@ We reproduce the original tensorflow version on three different learning rate, w
 ## Conclusions
 
 - The model of this paper performs well in terms of metrics like accuracy & IoU, but seems not function well on segmenting an arbitrary RGB img.
+- During this reproduction, we get a better understanding of PyTorch and the image segmentation.
 
 
 ## Reference
