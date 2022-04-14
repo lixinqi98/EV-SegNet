@@ -67,8 +67,9 @@ Xception is the main training focus, and is also where our biggest problem came 
 ## Experiments & Results
 
 ### Experimental Environments
+
 | Setting     | Description                       |  
-| ----------- | --------------------------------- |  
+
 | System      | Ubuntu 16.04.7 LTS (Xenial Xerus) |  
 | GPU         | Nvidia GTX 2080Ti                 |  
 | Language    | Python3                           |  
