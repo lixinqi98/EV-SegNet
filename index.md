@@ -105,9 +105,18 @@ We reproduce the original tensorflow version on three different learning rate, w
 
 
 
+### Metric Results
 
-
-
+| Model                         | Accuracy  |   IoU   |
+|-------------------------------|-----------|---------|
+| Pytorch-3channel              |   91.47%  |  0.4358 |
+| Pytorch-6channel              |   89.58%  |  0.3325 |
+| TF-original                   |   88.49%  |  0.5459 |
+| TF-with 20% train data        |   88.47%  |  0.5308 |
+| TF-with 10% train data        |   86.67%  |  0.4870 |
+| TF-with 5% train data         |   86.05%  |  0.4139 |
+| TF-with 2e-3 learning rate    |   88.39%  |  0.5244 |
+| TF-with 5e-4 learning rate    |   88.02%  |  0.5287 |
 
 ## Conclusions
 
