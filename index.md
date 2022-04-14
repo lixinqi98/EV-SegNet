@@ -26,19 +26,24 @@ In 2018, Iñigo Alonso and Ana C. Murillo published an article to overcome these
 As mentioned before, event cameras and DVS are barely adopted for deep learning usage. Recent works tend to solve problems (3D reconstruction and 6-DOF camera tracking) with conventional cameras. These tasks already showed mature performance on RGB images, however turn out to be not adaptable for event cameras. In regard to other tasks, such as optical flow estimation, object detection and recognition, latest works start to deal with recordings in real scenarios, such as N-CARS dataset and DDD17 dataset. It's interesting that all these works begin with a common first-step: to encode the event information into an image-like representation. 
 
 ### Semantic Segmentation
-For a given image, one would expect a segmentation algorithm to recognize the semantic parts in it through a segmentation algorithm$^{[1]}$. Semantic segmentation as the expected solution, mainly aims at assigning a semantic label to each pixel in the image. Most of the works that focus on this visual recognition problem are realized by encoder-decoder CNN architectures. The existing methods for semantic segmentation mostly either target at an instance level or a class level and prove the effecetiveness of CNNs. Based on this, the author managed to find some modalities as addition to the input data and it turns out better performance has been achieved with these modalities added. And specifically in this case where the author intends to adopt event camers, event camera data will be adopted as the additional modality.
+For a given image, one would expect a segmentation algorithm to recognize the semantic parts in it through a segmentation algorithm[^1]. Semantic segmentation as the expected solution, mainly aims at assigning a semantic label to each pixel in the image. Most of the works that focus on this visual recognition problem are realized by encoder-decoder CNN architectures. The existing methods for semantic segmentation mostly either target at an instance level or a class level and prove the effecetiveness of CNNs. Based on this, the author managed to find some modalities as addition to the input data and it turns out better performance has been achieved with these modalities added. And specifically in this case where the author intends to adopt event camers, event camera data will be adopted as the additional modality.
 ## Data
 ### Event data
 Unlike RGB conventional image, which is 3-dimensional (height, width and 3 channels), the output of an event camera does not have an standard representation. Events are asynchronous and some previous encodings of events do not provide good input for CNNs.
 
 ### Event Representation
-In order to better train a CNN model with event data, the paper proposed an event data representation which is 6 channels. The first two channels are the histogram of positive and negative events. Second two and the last two are the mean and standard deviation of the normalized timestamps of events happening at each pixel for positive and nagative events.Thus the six channels are $ Hist(x, y, -1) $, $ Hist(x, y, +1) $, $ M(x, y, -1) $, $ M(x, y, +1) $, $ S(x, y, -1) $, $ S(x, y, +1) $.
+In order to better train a CNN model with event data, the paper proposed an event data representation which is 6 channels. The first two channels are the histogram of positive and negative events. Second two and the last two are the mean and standard deviation of the normalized timestamps of events happening at each pixel for positive and nagative events.Thus the six channels are Hist(x, y, -1), Hist(x, y, +1), M(x, y, -1), M(x, y, +1), S(x, y, -1) , S(x, y, +1).
 
 ### Dataset 
 To train a CNN model with the proposed 6 event  representation, the paper constructed the corresponding dataset with that representation. Its data is an extension for semantic segmentation of the DDD17 dataset, which consists of 40 sequences of diffenrent driving set-ups. The extension first select 6 out of the whole 40 sequences based on two criteria(day-time video and no extreme overexposure) in order to achieve better result. And then it trained another CNN to automatically generate semantic segmentation labels to be used as ground truth. So wrap it up, the X of the dataset is the proposed 6 channels event representation and Y of the dataset is the automatically generated semantic segmentation labels. So next, we are going to introduce the model.
 ## Model Architecture
 
-| ![Model Figure](https://i.imgur.com/Hsudp2k.png) |
+| !
+
+
+
+
+Model Figure](https://i.imgur.com/Hsudp2k.png) |
 |:--:|
 |Figure 1. Segmantic Segmentation from Event-based Cameras|
 
@@ -72,7 +77,7 @@ Xception is the main training focus, and is also where our biggest problem came 
 ### Variant 1 - TensorFlow to PyTorch
 The author's code was written in TensorFlow v1.13 which is outdated and not very efficient. In our experiment, this version only occupies around 22% voltage utility of one GPU node. Besides, the PyTorch framework is more tightly integrated with Python and we are more family with this. So our first variant is trying to migrate the TensorFlow version to the PyTorch platform. 
 
-The biggest problem we encountered here is the use of pre-trained model. The author used a Keras pre-trained Xception model to get specific layers' output and further use them in the encoder. This pre-trained model can accept the 6-channels input naturally. We have to use a [third party pre-trained model](https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/xception.py)$^{[2]}$ because the PyTorch didn't provide an official one. This model can only accept the fixed size 3-channels input image, while our project need to feed a 6-channels one. Our first intuitive solution is tryng the 3-channel input first to see what we can get, which means we just use 3 channels of the provided 6-channel dataset. Then we use two Xception models to embed the 6-channels input image spearately inspired by the group normalization.
+The biggest problem we encountered here is the use of pre-trained model. The author used a Keras pre-trained Xception model to get specific layers' output and further use them in the encoder. This pre-trained model can accept the 6-channels input naturally. We have to use a [third party pre-trained model](https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/xception.py)[^2] because the PyTorch didn't provide an official one. This model can only accept the fixed size 3-channels input image, while our project need to feed a 6-channels one. Our first intuitive solution is tryng the 3-channel input first to see what we can get, which means we just use 3 channels of the provided 6-channel dataset. Then we use two Xception models to embed the 6-channels input image spearately inspired by the group normalization.
 
 
 | ![](https://i.imgur.com/XnlTMvy.png)|
