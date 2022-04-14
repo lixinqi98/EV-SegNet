@@ -9,6 +9,7 @@
         });
     </script>
 </head>
+
 # EV-SegNet: Semantic Segmentation for Event-based Cameras
 
 ## Introduction
