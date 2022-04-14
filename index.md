@@ -38,7 +38,7 @@ In order to better train a CNN model with event data, the paper proposed an even
 To train a CNN model with the proposed 6 event  representation, the paper constructed the corresponding dataset with that representation. Its data is an extension for semantic segmentation of the DDD17 dataset, which consists of 40 sequences of diffenrent driving set-ups. The extension first select 6 out of the whole 40 sequences based on two criteria(day-time video and no extreme overexposure) in order to achieve better result. And then it trained another CNN to automatically generate semantic segmentation labels to be used as ground truth. So wrap it up, the X of the dataset is the proposed 6 channels event representation and Y of the dataset is the automatically generated semantic segmentation labels. So next, we are going to introduce the model.
 ## Model Architecture
 
-| !
+| ![Model Figure](https://i.imgur.com/Hsudp2k.png) |
 
 
 
