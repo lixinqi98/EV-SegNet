@@ -2,10 +2,10 @@
 # EV-SegNet: Semantic Segmentation for Event-based Cameras
 The code repository : [lixinqi98/EV-SegNet](https://github.com/lixinqi98/EV-SegNet)
 ### Group Members:
--  Dongxv Lu   5503426
--  Kexin Su    5591597
--  Shiduo Xin  5673119
--  Xinqi Li    5478073
+-  Dongxv Lu   (5503426)
+-  Kexin Su    (5591597) k.su-1@student.tudelft.nl
+-  Shiduo Xin  (5673119) mtcxnbss@gmail.com 
+-  Xinqi Li    (5478073）X.Li-63@student.tudelft.nl
 ## Introduction
 To capture the dynamic intensity changes during events, promising sensors such as event cameras or Dynamic Vision Sensor (DVS) are often adopted. While these cameras provide high temporal resolution, high dynamic range and require low on power and bandwidth, deep learning method still barely use the images of these cameras. The main reasons are 
 1. No standard output images of these cameras；
@@ -139,14 +139,14 @@ This paper aims to apply the image segmentation to the event based images, using
 ## Work Division
 | Name              | Work                                                          |  
 | ----------------- | ---------------------------------                             |  
-| Shiduo Xin (5673119) mtcxnbss@gmail.com       | Run the original code in TensorFlow                           |  
+| Shiduo Xin       | Run the original code in TensorFlow                           |  
 |                   | Integrating and debugging the whole model                     |  
 |                   | Hyperparameter Check                                          |  
 |                   | Writing Blog (Experiment)                                     |  
-| Xinqi Li（5478073）X.Li-63@student.tudelft.nl | Rewrite TensorFlow code to PyTorch (model)                    |  
+| Xinqi Li | Rewrite TensorFlow code to PyTorch (model)                    |  
 |                   | Integrating and debugging the whole model                     |  
 |                   | Writing Blog (Experiment)                                     |  
-| Dongxu Lu (5503426)         | Rewrite TensorFlow code to PyTorch (framework)                |  
+| Dongxu Lu         | Rewrite TensorFlow code to PyTorch (framework)                |  
 |                   | Writing Blog (Introduction, Related Work) and organize content|  
-| Kexin Su (5591597) k.su-1@student.tudelft.nl | Rewrite TensorFlow code to PyTorch (data loader)              |  
+| Kexin Su  | Rewrite TensorFlow code to PyTorch (data loader)              |  
 |                   | Wriring Blog (Data, Model Architecture)                       |  
