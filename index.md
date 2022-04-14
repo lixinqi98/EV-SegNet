@@ -64,7 +64,6 @@ Xception is the main training focus, and is also where our biggest problem came 
 ### Experimental Environments
 
 | Setting     | Description                       | 
-
 |-------------|-----------------------------------|
 | System      | Ubuntu 16.04.7 LTS (Xenial Xerus) |  
 | GPU         | Nvidia GTX 2080Ti                 |  
@@ -83,7 +82,7 @@ The biggest problem we encountered here is the use of pre-trained model. The aut
 
 As shown in Figure 4, the 6-channels version is even worse than the 3 channel one. Based on our analysis, this combination might change the latent data distribution.
 
-| ![](https://i.imgur.com/9CBil2Y.png =550x400) |
+| ![](https://i.imgur.com/9CBil2Y.png) |
 |:--:|
 |Figure 4. Comparison between Original Implementation and PyTorch Version. The three results (original-tensorflow version,  pytorch-3channel,  pytorch-6channel) all trained on 10% of the whole training samples.|
 
@@ -106,12 +105,12 @@ We reproduce the original tensorflow version on three different learning rate, w
 
 
 
-|![](https://i.imgur.com/zdlqITv.png =550x400)|
+|![](https://i.imgur.com/zdlqITv.png)|
 |:--:|
 |Figure 6. Learning Rate Hyperparam Check|
 
 
-|![](https://i.imgur.com/kBN7Biu.png =550x400)|
+|![](https://i.imgur.com/kBN7Biu.png)|
 |:--:|
 |Figure 7. Training Samples Volumn Robustness Check|
 
@@ -129,7 +128,9 @@ We reproduce the original tensorflow version on three different learning rate, w
 
 ## Reference
 [1] Zhu, H., Meng, F., Cai, J., & Lu, S. (2016). Beyond pixels: A comprehensive survey from bottom-up to semantic image segmentation and cosegmentation. Journal of Visual Communication and Image Representation, 34, 12-27.
+
 [2] https://github.com/Cadene/pretrained-models.pytorch/blob/master/pretrainedmodels/models/xception.py
+
 [3] https://arxiv.org/pdf/1610.02357.pdf
 
 
